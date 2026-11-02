@@ -104,3 +104,7 @@ scripts/       build, instalación y desinstalación
 ## Otros chips (M2, M3, M4…)
 
 El control de ventiladores es genérico, pero los **nombres de los sensores de temperatura varían según el chip**. La app solo considera hoy las claves `Tp*`, `Te*` y `Tg*` (las de M1). En otros chips puede subestimar la temperatura del CPU. Si pruebas en otro equipo, adjunta la salida de `dist/fanctl dump` en un issue.
+
+## Licencia
+
+[MIT](LICENSE). El software se entrega «tal cual», sin garantía de ningún tipo.
