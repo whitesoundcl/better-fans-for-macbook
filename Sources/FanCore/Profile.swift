@@ -51,7 +51,7 @@ public struct ProfileStore {
 
     public static var defaultURL: URL {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        return base.appendingPathComponent("FanBar/profiles.json")
+        return base.appendingPathComponent("BetterFans/profiles.json")
     }
 
     public func load() -> [Profile] {

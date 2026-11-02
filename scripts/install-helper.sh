@@ -4,7 +4,7 @@ set -euo pipefail
 [ "$(id -u)" = 0 ] || { echo "run with sudo"; exit 1; }
 cd "$(dirname "$0")/.."
 
-LABEL=com.whitesound.fanbar.helper
+LABEL=com.whitesound.betterfans.helper
 DEST=/Library/PrivilegedHelperTools/$LABEL
 PLIST=/Library/LaunchDaemons/$LABEL.plist
 [ -x dist/fanhelperd ] || { echo "run scripts/build.sh first"; exit 1; }

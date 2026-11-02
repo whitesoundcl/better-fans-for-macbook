@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 
 @main
-struct FanBarApp: App {
+struct BetterFansApp: App {
     @StateObject private var model = AppModel()
 
     init() {

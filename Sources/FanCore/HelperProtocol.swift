@@ -1,6 +1,6 @@
 import Foundation
 
-public let fanHelperMachName = "com.whitesound.fanbar.helper"
+public let fanHelperMachName = "com.whitesound.betterfans.helper"
 
 /// XPC interface of the privileged helper. Payloads are JSON `Data` to keep the NSXPC surface trivial.
 @objc public protocol FanHelperProtocol {

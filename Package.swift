@@ -8,13 +8,13 @@ let package = Package(
         .library(name: "FanCore", targets: ["FanCore"]),
         .executable(name: "fanctl", targets: ["fanctl"]),
         .executable(name: "fanhelperd", targets: ["fanhelperd"]),
-        .executable(name: "FanBar", targets: ["FanBar"]),
+        .executable(name: "BetterFans", targets: ["BetterFans"]),
     ],
     targets: [
         .target(name: "FanCore"),
         .executableTarget(name: "fanctl", dependencies: ["FanCore"]),
         .executableTarget(name: "fanhelperd", dependencies: ["FanCore"]),
-        .executableTarget(name: "FanBar", dependencies: ["FanCore"]),
+        .executableTarget(name: "BetterFans", dependencies: ["FanCore"]),
         .testTarget(name: "FanCoreTests", dependencies: ["FanCore"]),
     ]
 )
