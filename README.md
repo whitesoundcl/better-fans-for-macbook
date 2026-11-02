@@ -1,22 +1,26 @@
 # Better Fans For Macbook
 
-Control de ventiladores para MacBook con Apple Silicon, desde la barra de menús. Reemplaza la curva conservadora de macOS por una **curva temperatura → velocidad editable**, con varios perfiles.
+English · **[Español](README.es.md)**
 
-- App de barra de menús (SwiftUI) con temperatura y RPM en vivo.
-- Perfiles incluidos: *Automático (Apple)*, *Frío para piernas*, *Silencioso* y *Máximo*. Puedes crear los tuyos.
-- Editor visual de curva: arrastra puntos, doble clic añade uno, clic derecho lo elimina.
-- Histéresis y rampa de velocidad para evitar zumbidos oscilantes.
-- CLI de depuración (`fanctl`) para leer sensores y probar los ventiladores.
+Fan control for Apple Silicon MacBooks, from the menu bar. It replaces macOS's conservative fan behavior with an **editable temperature → speed curve** and several profiles.
 
-> **Aviso.** Este proyecto escribe en el SMC mediante una interfaz **no documentada** de Apple. Úsalo bajo tu responsabilidad. Se ha probado solo en un **MacBook Pro M1 Pro con macOS 26**. No está afiliado a ningún otro fabricante de software de control de ventiladores.
+- Menu bar app (SwiftUI) showing live temperature and RPM.
+- Built-in profiles: *Automático (Apple)* (macOS default), *Frío para piernas* (cool for your lap), *Silencioso* (quiet) and *Máximo* (maximum). You can create your own.
+- Visual curve editor: drag points, double-click to add one, right-click to remove it.
+- Hysteresis and speed ramping to avoid oscillating fan noise.
+- Debug CLI (`fanctl`) to read sensors and test the fans.
 
-## Requisitos
+> **Note.** The app is currently in Spanish (menus and profile names).
 
-- Mac con **Apple Silicon** y **macOS 13 o superior**.
-- **Xcode** (o las *Command Line Tools*) con **Swift 5.9+**: `xcode-select --install`.
-- Permisos de administrador (`sudo`) para instalar el helper.
+> **Warning.** This project writes to the SMC through an **undocumented** Apple interface. Use it at your own risk. It has only been tested on a **MacBook Pro M1 Pro running macOS 26**. It is not affiliated with any other fan-control software vendor.
 
-## Compilar
+## Requirements
+
+- A Mac with **Apple Silicon** and **macOS 13 or later**.
+- **Xcode** (or the *Command Line Tools*) with **Swift 5.9+**: `xcode-select --install`.
+- Administrator rights (`sudo`) to install the helper.
+
+## Build
 
 ```bash
 git clone https://github.com/whitesoundcl/better-fans-for-macbook.git
@@ -24,87 +28,87 @@ cd better-fans-for-macbook
 ./scripts/build.sh
 ```
 
-Esto genera en `dist/`:
+This produces, in `dist/`:
 
-| Archivo | Qué es |
+| File | What it is |
 |---|---|
-| `Better Fans For Macbook.app` | La app de barra de menús |
-| `fanhelperd` | El helper con privilegios que escribe en los ventiladores |
-| `fanctl` | Herramienta de línea de comandos |
+| `Better Fans For Macbook.app` | The menu bar app |
+| `fanhelperd` | The privileged helper that writes to the fans |
+| `fanctl` | Command-line tool |
 
-## Probar antes de instalar (recomendado)
+## Test before installing (recommended)
 
-1. Lectura, sin privilegios:
+1. Read-only, no privileges needed:
 
    ```bash
    dist/fanctl status
    ```
 
-   Debe mostrar tus ventiladores (RPM actual, mínimo y máximo) y los sensores más calientes.
+   It should list your fans (current, minimum and maximum RPM) and the hottest sensors.
 
-2. Escritura, con `sudo`. Fija los ventiladores a 3000 RPM durante 20 s y luego devuelve el control a macOS:
+2. Write test, with `sudo`. It holds the fans at 3000 RPM for 20 s and then hands control back to macOS:
 
    ```bash
    sudo dist/fanctl set 3000 20
    ```
 
-   Si las RPM (`actual`) se acercan a 3000, el control manual funciona en tu equipo. Si no, **no sigas**: abre un issue con la salida de `dist/fanctl dump`.
+   If the `actual` RPM approaches 3000, manual control works on your machine. If not, **stop here** and open an issue with the output of `dist/fanctl dump`.
 
-## Instalar y ejecutar
+## Install and run
 
-1. Cierra cualquier otra app que controle los ventiladores. la app avisa en el menú si detecta que otra app los tiene en modo manual.
-2. Instala el helper como servicio del sistema:
+1. Quit any other app that controls the fans. This app shows a warning in its menu if it detects that another app has the fans in manual mode.
+2. Install the helper as a system service:
 
    ```bash
    sudo scripts/install-helper.sh
    ```
 
-3. Abre la app:
+3. Open the app:
 
    ```bash
    open "dist/Better Fans For Macbook.app"
    ```
 
-   Aparecerá la temperatura y las RPM en la barra de menús. Elige un perfil en el menú; si dice **«Curva activa»**, está funcionando.
+   The temperature and RPM appear in the menu bar. Pick a profile from the menu; if it says **"Curva activa"** (curve active), it's working.
 
-Opcional: copia `dist/Better Fans For Macbook.app` a `/Applications` y activa **«Abrir al iniciar sesión»** en el menú.
+Optional: copy `dist/Better Fans For Macbook.app` to `/Applications` and enable **"Abrir al iniciar sesión"** (open at login) in the menu.
 
-## Desinstalar
+## Uninstall
 
 ```bash
 sudo scripts/uninstall.sh
 ```
 
-Devuelve los ventiladores a macOS y elimina el helper. Después puedes borrar `Better Fans For Macbook.app`. Tus perfiles personalizados se guardan en `~/Library/Application Support/BetterFans/profiles.json`.
+This returns the fans to macOS and removes the helper. You can then delete `Better Fans For Macbook.app`. Your custom profiles are stored in `~/Library/Application Support/BetterFans/profiles.json`.
 
-## Seguridad
+## Safety
 
-- El helper **limita siempre** el objetivo al mínimo y máximo de cada ventilador.
-- **Watchdog:** si la app no da señales durante 10 s (se cierra o se cuelga), el helper devuelve los ventiladores a macOS.
-- **Límite térmico:** a 90 °C o más ignora la curva y sube los ventiladores al máximo.
-- Si no se pueden leer los sensores, se devuelve el control a macOS.
-- El helper solo acepta conexiones del usuario que tiene la sesión iniciada (o root). La app y el helper se firman de forma *ad-hoc*, adecuada para uso personal.
+- The helper **always clamps** the target to each fan's own minimum and maximum.
+- **Watchdog:** if the app stops responding for 10 s (it quits or hangs), the helper hands the fans back to macOS.
+- **Thermal limit:** at 90 °C or above, the curve is ignored and the fans go to maximum.
+- If the sensors can't be read, control is handed back to macOS.
+- The helper only accepts connections from the logged-in user (or root). The app and helper are *ad-hoc* signed, which is fine for personal use.
 
-## Desarrollo
+## Development
 
 ```bash
-swift build        # compila todo
-swift test         # tests de la curva, el controlador y la decodificación del SMC
+swift build        # build everything
+swift test         # tests for the curve, the controller and SMC decoding
 ```
 
 ```
 Sources/
-  FanCore/     SMC (IOKit), sensores, curva, perfiles, controlador, driver de ventiladores
-  fanhelperd/  helper privilegiado (LaunchDaemon + XPC)
-  BetterFans/  app de barra de menús (SwiftUI)
-  fanctl/      CLI de depuración
-scripts/       build, instalación y desinstalación
+  FanCore/     SMC (IOKit), sensors, curve, profiles, controller, fan driver
+  fanhelperd/  privileged helper (LaunchDaemon + XPC)
+  BetterFans/  menu bar app (SwiftUI)
+  fanctl/      debug CLI
+scripts/       build, install and uninstall
 ```
 
-## Otros chips (M2, M3, M4…)
+## Other chips (M2, M3, M4…)
 
-El control de ventiladores es genérico, pero los **nombres de los sensores de temperatura varían según el chip**. La app solo considera hoy las claves `Tp*`, `Te*` y `Tg*` (las de M1). En otros chips puede subestimar la temperatura del CPU. Si pruebas en otro equipo, adjunta la salida de `dist/fanctl dump` en un issue.
+Fan control is generic, but **temperature sensor names vary by chip**. The app currently only considers the `Tp*`, `Te*` and `Tg*` keys (the ones used by M1). On other chips it may underestimate the CPU temperature. If you try it on another machine, please attach the output of `dist/fanctl dump` to an issue.
 
-## Licencia
+## License
 
-[MIT](LICENSE). El software se entrega «tal cual», sin garantía de ningún tipo.
+[MIT](LICENSE). The software is provided "as is", without warranty of any kind.
