@@ -8,6 +8,7 @@ Control de ventiladores para MacBook con Apple Silicon, desde la barra de menús
 - Perfiles incluidos: *Automático (Apple)*, *Frío para piernas*, *Silencioso* y *Máximo*. Puedes crear los tuyos.
 - Editor visual de curva: arrastra puntos, doble clic añade uno, clic derecho lo elimina.
 - Histéresis y rampa de velocidad para evitar zumbidos oscilantes.
+- Ventana *Sensores* con todos los sensores de temperatura del SMC (agrupados, con filtro, en vivo).
 - CLI de depuración (`fanctl`) para leer sensores y probar los ventiladores.
 
 > **Aviso.** Este proyecto escribe en el SMC mediante una interfaz **no documentada** de Apple. Úsalo bajo tu responsabilidad. Se ha probado solo en los equipos de [Equipos probados](#equipos-probados). No está afiliado a ningún otro fabricante de software de control de ventiladores.

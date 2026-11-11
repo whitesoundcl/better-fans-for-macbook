@@ -8,6 +8,7 @@ Fan control for Apple Silicon MacBooks, from the menu bar. It replaces macOS's c
 - Built-in profiles: *Automático (Apple)* (macOS default), *Frío para piernas* (cool for your lap), *Silencioso* (quiet) and *Máximo* (maximum). You can create your own.
 - Visual curve editor: drag points, double-click to add one, right-click to remove it.
 - Hysteresis and speed ramping to avoid oscillating fan noise.
+- *Sensores* window listing every SMC temperature sensor (grouped, filterable, live).
 - Debug CLI (`fanctl`) to read sensors and test the fans.
 
 > **Note.** The app is currently in Spanish (menus and profile names).

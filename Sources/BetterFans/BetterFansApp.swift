@@ -21,5 +21,10 @@ struct BetterFansApp: App {
             EditorView().environmentObject(model)
         }
         .windowResizability(.contentSize)
+
+        Window("Sensores", id: "sensors") {
+            SensorsView()
+        }
+        .defaultSize(width: 620, height: 680)
     }
 }
