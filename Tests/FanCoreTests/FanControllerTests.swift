@@ -37,7 +37,7 @@ final class FanControllerTests: XCTestCase {
     func testHardLimitIgnoresRampAndGoesToMax() {
         var ctl = FanController(profile: .quiet)
         _ = ctl.decide(temp: 40, fans: fans, dt: 1)
-        XCTAssertEqual(ctl.decide(temp: 91, fans: fans, dt: 0.1), .rpm([4300, 4700]))
+        XCTAssertEqual(ctl.decide(temp: FanController.hardLimitC + 1, fans: fans, dt: 0.1), .rpm([4300, 4700]))
     }
 
     func testRampLimitsRiseAndFall() {
