@@ -12,7 +12,7 @@ Fan control for Apple Silicon MacBooks, from the menu bar. It replaces macOS's c
 
 > **Note.** The app is currently in Spanish (menus and profile names).
 
-> **Warning.** This project writes to the SMC through an **undocumented** Apple interface. Use it at your own risk. It has only been tested on a **MacBook Pro M1 Pro running macOS 26**. It is not affiliated with any other fan-control software vendor.
+> **Warning.** This project writes to the SMC through an **undocumented** Apple interface. Use it at your own risk. It has only been tested on the machines listed in [Tested machines](#tested-machines). It is not affiliated with any other fan-control software vendor.
 
 ## Requirements
 
@@ -105,9 +105,16 @@ Sources/
 scripts/       build, install and uninstall
 ```
 
-## Other chips (M2, M3, M4…)
+## Tested machines
 
-Fan control is generic, but **temperature sensor names vary by chip**. The app currently only considers the `Tp*`, `Te*` and `Tg*` keys (the ones used by M1). On other chips it may underestimate the CPU temperature. If you try it on another machine, please attach the output of `dist/fanctl dump` to an issue.
+| Machine | Chip | macOS | Result |
+|---|---|---|---|
+| MacBook Pro | M1 Pro | 26 | Works |
+| MacBook Pro (`Mac15,6`) | M3 Pro | 15.7 | Works: sensors, manual control and curves |
+
+## Other chips (M2, M4…)
+
+Fan control is generic, but **temperature sensor names vary by chip**. The app currently only considers the `Tp*`, `Te*` and `Tg*` keys (present on M1 and M3). On other chips it may underestimate the CPU temperature. If you try it on another machine, please attach the output of `dist/fanctl dump` to an issue.
 
 ## License
 

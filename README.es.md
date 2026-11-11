@@ -10,7 +10,7 @@ Control de ventiladores para MacBook con Apple Silicon, desde la barra de menús
 - Histéresis y rampa de velocidad para evitar zumbidos oscilantes.
 - CLI de depuración (`fanctl`) para leer sensores y probar los ventiladores.
 
-> **Aviso.** Este proyecto escribe en el SMC mediante una interfaz **no documentada** de Apple. Úsalo bajo tu responsabilidad. Se ha probado solo en un **MacBook Pro M1 Pro con macOS 26**. No está afiliado a ningún otro fabricante de software de control de ventiladores.
+> **Aviso.** Este proyecto escribe en el SMC mediante una interfaz **no documentada** de Apple. Úsalo bajo tu responsabilidad. Se ha probado solo en los equipos de [Equipos probados](#equipos-probados). No está afiliado a ningún otro fabricante de software de control de ventiladores.
 
 ## Requisitos
 
@@ -103,9 +103,16 @@ Sources/
 scripts/       build, instalación y desinstalación
 ```
 
-## Otros chips (M2, M3, M4…)
+## Equipos probados
 
-El control de ventiladores es genérico, pero los **nombres de los sensores de temperatura varían según el chip**. La app solo considera hoy las claves `Tp*`, `Te*` y `Tg*` (las de M1). En otros chips puede subestimar la temperatura del CPU. Si pruebas en otro equipo, adjunta la salida de `dist/fanctl dump` en un issue.
+| Equipo | Chip | macOS | Resultado |
+|---|---|---|---|
+| MacBook Pro | M1 Pro | 26 | Funciona |
+| MacBook Pro (`Mac15,6`) | M3 Pro | 15.7 | Funciona: sensores, control manual y curvas |
+
+## Otros chips (M2, M4…)
+
+El control de ventiladores es genérico, pero los **nombres de los sensores de temperatura varían según el chip**. La app solo considera hoy las claves `Tp*`, `Te*` y `Tg*` (presentes en M1 y M3). En otros chips puede subestimar la temperatura del CPU. Si pruebas en otro equipo, adjunta la salida de `dist/fanctl dump` en un issue.
 
 ## Licencia
 
