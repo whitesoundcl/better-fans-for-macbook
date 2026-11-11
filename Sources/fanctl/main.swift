@@ -32,7 +32,7 @@ do {
         print("fans: \(n)")
         for i in 0..<n {
             let get = { (s: String) in (try? smc.read("F\(i)\(s)"))?.number }
-            print("fan \(i): actual \(get("Ac").map { String(Int($0)) } ?? "?") rpm, min \(get("Mn").map { String(Int($0)) } ?? "?"), max \(get("Mx").map { String(Int($0)) } ?? "?"), target \(get("Tg").map { String(Int($0)) } ?? "?"), mode \(get("Md").map { String(Int($0)) } ?? "?")")
+            print("fan \(i): actual \(get("Ac").map { String(Int($0)) } ?? "?") rpm, min \(get("Mn").map { String(Int($0)) } ?? "?"), max \(get("Mx").map { String(Int($0)) } ?? "?"), target \(get("Tg").map { String(Int($0)) } ?? "?"), mode \((try? smc.read(FanDriver.modeKey(smc, fan: i)))?.number.map { String(Int($0)) } ?? "?")")
         }
         let temps = try smc.allKeys().filter { $0.hasPrefix("T") }.compactMap { k -> (String, Double)? in
             guard let n = (try? smc.read(k))?.number, n > 0, n < 150 else { return nil }

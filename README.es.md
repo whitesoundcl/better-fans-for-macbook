@@ -109,10 +109,11 @@ scripts/       build, instalación y desinstalación
 |---|---|---|---|
 | MacBook Pro | M1 Pro | 26 | Funciona |
 | MacBook Pro (`Mac15,6`) | M3 Pro | 15.7 | Funciona: sensores, control manual y curvas |
+| MacBook Pro (`Mac17,9`) | M5 Pro | 27.2 | Funciona: sensores, control manual y curvas (la clave de modo es `F<n>md`, sin `Ftst`) |
 
 ## Otros chips (M2, M4…)
 
-El control de ventiladores es genérico, pero los **nombres de los sensores de temperatura varían según el chip**. La app solo considera hoy las claves `Tp*`, `Te*` y `Tg*` (presentes en M1 y M3). En otros chips puede subestimar la temperatura del CPU. Si pruebas en otro equipo, adjunta la salida de `dist/fanctl dump` en un issue.
+El control de ventiladores es genérico, pero los **nombres de los sensores de temperatura varían según el chip**. La app solo considera hoy las claves `Tp*`, `Te*` y `Tg*` (presentes en M1, M3 y M5; el M5 no tiene `Te*`). En otros chips puede subestimar la temperatura del CPU. Si pruebas en otro equipo, adjunta la salida de `dist/fanctl dump` en un issue.
 
 ## Licencia
 

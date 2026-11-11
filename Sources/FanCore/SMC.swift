@@ -156,6 +156,16 @@ public final class SMC {
         _ = try call(&input, key: key)
     }
 
+    private var existsCache: [String: Bool] = [:]
+
+    /// Whether the SMC exposes `key` (cached; key sets don't change at runtime).
+    public func hasKey(_ key: String) -> Bool {
+        if let known = existsCache[key] { return known }
+        let found = (try? keyInfo(key)) != nil
+        existsCache[key] = found
+        return found
+    }
+
     public func keyCount() throws -> Int {
         Int(try read("#KEY").number ?? 0)
     }

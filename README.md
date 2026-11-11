@@ -111,10 +111,11 @@ scripts/       build, install and uninstall
 |---|---|---|---|
 | MacBook Pro | M1 Pro | 26 | Works |
 | MacBook Pro (`Mac15,6`) | M3 Pro | 15.7 | Works: sensors, manual control and curves |
+| MacBook Pro (`Mac17,9`) | M5 Pro | 27.2 | Works: sensors, manual control and curves (fan mode key is `F<n>md`, no `Ftst`) |
 
 ## Other chips (M2, M4…)
 
-Fan control is generic, but **temperature sensor names vary by chip**. The app currently only considers the `Tp*`, `Te*` and `Tg*` keys (present on M1 and M3). On other chips it may underestimate the CPU temperature. If you try it on another machine, please attach the output of `dist/fanctl dump` to an issue.
+Fan control is generic, but **temperature sensor names vary by chip**. The app currently only considers the `Tp*`, `Te*` and `Tg*` keys (present on M1, M3 and M5 — M5 has no `Te*`). On other chips it may underestimate the CPU temperature. If you try it on another machine, please attach the output of `dist/fanctl dump` to an issue.
 
 ## License
 

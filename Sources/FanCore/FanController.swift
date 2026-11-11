@@ -17,7 +17,9 @@ public enum FanDecision: Equatable {
 /// Pure control loop: temperature in, per-fan RPM targets out. Holds hysteresis and ramp state only.
 public struct FanController {
     /// At or above this temperature the profile is ignored and fans go to maximum.
-    public static let hardLimitC = 90.0
+    /// 100 °C: M5 Pro P-cores sit at ~90 °C under ordinary load even with Apple's curve,
+    /// so 90 °C would pin the fans at max during any build. Still below the throttling point.
+    public static let hardLimitC = 100.0
 
     public var profile: Profile
     private var heldTemp: Double?

@@ -48,7 +48,8 @@ public final class SensorReader {
             // Min/max are fixed hardware limits: read once.
             if fanRanges[i] == nil { fanRanges[i] = (v("Mn"), v("Mx")) }
             let range = fanRanges[i]!
-            return FanReading(index: i, actualRPM: v("Ac"), targetRPM: v("Tg"), minRPM: range.min, maxRPM: range.max, mode: Int(v("Md")))
+            return FanReading(index: i, actualRPM: v("Ac"), targetRPM: v("Tg"), minRPM: range.min, maxRPM: range.max, mode: Int((try? smc.read(FanDriver.modeKey(smc, fan: i)))?.number ?? 0))
         }
     }
 }
+
