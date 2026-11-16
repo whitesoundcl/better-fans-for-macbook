@@ -1,5 +1,4 @@
 import SwiftUI
-import AppKit
 import FanCore
 
 struct MenuView: View {
@@ -7,65 +6,104 @@ struct MenuView: View {
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text(model.temperature.map { String(format: "%.0f °C", $0) } ?? "– °C")
-                    .font(.system(size: 28, weight: .semibold, design: .rounded))
-                Spacer()
-                VStack(alignment: .trailing, spacing: 2) {
-                    ForEach(model.fans, id: \.index) { f in
-                        Text("Ventilador \(f.index + 1): \(Int(f.actualRPM)) rpm")
-                            .font(.caption).monospacedDigit().foregroundStyle(.secondary)
-                    }
-                }
+        VStack(alignment: .leading, spacing: 12) {
+            header
+            SparklineCard { open("monitor") }
+            VStack(spacing: 8) {
+                ForEach(model.fans, id: \.index) { FanBar(fan: $0) }
             }
-
-            Picker("Perfil", selection: $model.selectedName) {
-                ForEach(model.profiles) { Text($0.name).tag($0.name) }
-            }
-            .pickerStyle(.radioGroup)
-            .labelsHidden()
-
-            ProfilePreview(profile: model.selected, currentTemp: model.temperature)
-
-            statusLine
-
-            if model.otherAppControlling {
-                Label("Otra app está controlando los ventiladores: ciérrala para que no compita.", systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption).foregroundStyle(.orange)
-            }
-
+            notices
             Divider()
-            Button("Ver todos los sensores…") {
-                NSApp.activate(ignoringOtherApps: true)
-                openWindow(id: "sensors")
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Perfil").font(.caption.weight(.semibold)).foregroundStyle(.secondary).padding(.leading, 4)
+                ForEach(model.profiles) { ProfileRow(profile: $0) }
             }
-            Button("Editar curva…") {
-                NSApp.activate(ignoringOtherApps: true)
-                openWindow(id: "editor")
+            Divider()
+            HStack(spacing: 8) {
+                shortcut("Monitor", "chart.line.uptrend.xyaxis", window: "monitor")
+                shortcut("Sensores", "thermometer.medium", window: "sensors")
+                shortcut("Curvas", "slider.horizontal.3", window: "editor")
             }
-            Toggle("Abrir al iniciar sesión", isOn: Binding(get: { model.launchAtLogin }, set: model.setLaunchAtLogin))
-            Button("Salir") {
-                model.resetToAuto()
-                NSApp.terminate(nil)
+            HStack {
+                Toggle("Abrir al iniciar sesión", isOn: $model.launchAtLoginSetting)
+                    .toggleStyle(.switch).controlSize(.mini).font(.caption)
+                Spacer()
+                Button("Salir", action: quit)
+                    .keyboardShortcut("q")
+                    .controlSize(.small)
             }
         }
         .padding(14)
-        .frame(width: 290)
-        .onAppear { model.menuOpen = true }
-        .onDisappear { model.menuOpen = false }
+        .frame(width: 320)
     }
 
-    @ViewBuilder private var statusLine: some View {
-        if !model.helperReachable {
-            Label("Helper no instalado o detenido (control de Apple activo).", systemImage: "bolt.slash")
-                .font(.caption).foregroundStyle(.secondary)
-        } else if let err = model.helperStatus?.lastError {
-            Label(err, systemImage: "exclamationmark.triangle").font(.caption).foregroundStyle(.red)
-        } else if model.helperStatus?.controlling == true {
-            Label("Curva activa", systemImage: "fanblades.fill").font(.caption).foregroundStyle(.green)
-        } else {
-            Label("Control de Apple", systemImage: "fanblades").font(.caption).foregroundStyle(.secondary)
+    // MARK: Sections
+
+    private var header: some View {
+        HStack(alignment: .top, spacing: 14) {
+            reading("CPU", model.cpuTemp, size: 34)
+            reading("GPU", model.gpuTemp, size: 22)
+            Spacer()
+            let s = model.status
+            StatusPill(text: s.text, systemImage: s.icon, tint: s.tint)
         }
+    }
+
+    private func reading(_ label: String, _ t: Double?, size: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(label).font(.caption).foregroundStyle(.secondary)
+            Text(t.map { "\($0.formatted(.number.precision(.fractionLength(0))))°" } ?? "–")
+                .font(.system(size: size, weight: .semibold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(Theme.temp(t))
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder private var notices: some View {
+        if model.otherAppControlling {
+            Label("Otra app está controlando los ventiladores: ciérrala para que no compitan.", systemImage: "exclamationmark.triangle.fill")
+                .font(.caption).foregroundStyle(.orange)
+        }
+        if let detail = model.status.detail {
+            Text(detail).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        }
+        if let error = model.saveError {
+            Label(error, systemImage: "exclamationmark.circle")
+                .font(.caption).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
+        }
+        if let error = model.loginItemError {
+            Label(error, systemImage: "exclamationmark.circle")
+                .font(.caption).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func shortcut(_ title: String, _ icon: String, window: String) -> some View {
+        Button { open(window) } label: {
+            Label(title, systemImage: icon)
+                .labelStyle(VerticalLabelStyle())
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 7)
+                .background(Theme.card, in: RoundedRectangle(cornerRadius: 8))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: Actions
+
+    private func open(_ id: String) {
+        if #available(macOS 14, *) {
+            NSApp.activate()
+        } else {
+            NSApp.activate(ignoringOtherApps: true)
+        }
+        openWindow(id: id)
+    }
+
+    private func quit() {
+        model.flushSave()
+        model.resetToAuto()
+        NSApp.terminate(nil)
     }
 }

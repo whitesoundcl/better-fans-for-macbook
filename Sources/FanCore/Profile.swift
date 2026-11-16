@@ -26,6 +26,21 @@ public struct Profile: Codable, Equatable, Identifiable {
 }
 
 public extension Profile {
+    /// Speed (% of each fan's range) this profile asks for at `temp`; nil for automatic or unknown temperature.
+    /// Mirrors `FanController` without hysteresis/ramp, for display.
+    func percent(at temp: Double?) -> Double? {
+        guard let temp else { return nil }
+        switch mode {
+        case .auto: return nil
+        case .fixed(let p): return min(100, max(0, p))
+        case .curve(let c): return temp >= FanController.hardLimitC ? 100 : c.percent(at: temp)
+        }
+    }
+
+    var isCurve: Bool { if case .curve = mode { return true } else { return false } }
+}
+
+public extension Profile {
     static let apple = Profile(name: "Automático (Apple)", mode: .auto)
 
     static let legsCool = Profile(name: "Frío para piernas", mode: .curve(Curve(points: [

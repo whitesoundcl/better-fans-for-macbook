@@ -4,9 +4,10 @@
 
 Control de ventiladores para MacBook con Apple Silicon, desde la barra de menús. Reemplaza la curva conservadora de macOS por una **curva temperatura → velocidad editable**, con varios perfiles.
 
-- App de barra de menús (SwiftUI) con temperatura y RPM en vivo.
+- App de barra de menús (SwiftUI) con temperatura de CPU/GPU en vivo, mini gráfico de 10 minutos y velocidad de ventiladores.
+- Ventana *Monitor* con gráficos de temperatura y velocidad (de 5 min a 1 h; al pasar el mouse muestra los valores exactos).
 - Perfiles incluidos: *Automático (Apple)*, *Frío para piernas*, *Silencioso* y *Máximo*. Puedes crear los tuyos.
-- Editor visual de curva: arrastra puntos, doble clic añade uno, clic derecho lo elimina.
+- Ventana *Curvas*: editor visual (arrastra puntos, doble clic añade uno, clic derecho lo elimina), histéresis y rampas, y duplicar, eliminar o restablecer perfiles.
 - Histéresis y rampa de velocidad para evitar zumbidos oscilantes.
 - Ventana *Sensores* con todos los sensores de temperatura del SMC (agrupados, con filtro, en vivo).
 - CLI de depuración (`fanctl`) para leer sensores y probar los ventiladores.
@@ -92,7 +93,13 @@ Devuelve los ventiladores a macOS y elimina el helper. Después puedes borrar `B
 
 ```bash
 swift build        # compila todo
-swift test         # tests de la curva, el controlador y la decodificación del SMC
+swift test         # tests de la curva, el controlador, el historial y la decodificación del SMC
+```
+
+Para revisar la interfaz sin abrir la barra de menús, renderiza todas las ventanas con datos de ejemplo a PNG (claro y oscuro):
+
+```bash
+"$(swift build -c release --show-bin-path)/BetterFans" --snapshot /tmp/betterfans-ui
 ```
 
 ```

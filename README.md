@@ -4,9 +4,10 @@ English · **[Español](README.es.md)**
 
 Fan control for Apple Silicon MacBooks, from the menu bar. It replaces macOS's conservative fan behavior with an **editable temperature → speed curve** and several profiles.
 
-- Menu bar app (SwiftUI) showing live temperature and RPM.
+- Menu bar app (SwiftUI) showing live CPU/GPU temperature, a 10-minute sparkline and fan speeds.
+- *Monitor* window with temperature and fan-speed charts (5 min to 1 h, hover for exact values).
 - Built-in profiles: *Automático (Apple)* (macOS default), *Frío para piernas* (cool for your lap), *Silencioso* (quiet) and *Máximo* (maximum). You can create your own.
-- Visual curve editor: drag points, double-click to add one, right-click to remove it.
+- *Curvas* window: visual curve editor (drag points, double-click to add one, right-click to remove it), hysteresis and ramp settings, duplicate, delete or reset profiles.
 - Hysteresis and speed ramping to avoid oscillating fan noise.
 - *Sensores* window listing every SMC temperature sensor (grouped, filterable, live).
 - Debug CLI (`fanctl`) to read sensors and test the fans.
@@ -94,7 +95,13 @@ This returns the fans to macOS and removes the helper. You can then delete `Bett
 
 ```bash
 swift build        # build everything
-swift test         # tests for the curve, the controller and SMC decoding
+swift test         # tests for the curve, the controller, history and SMC decoding
+```
+
+To review the UI without opening the menu bar, render every window with sample data to PNG (light and dark):
+
+```bash
+"$(swift build -c release --show-bin-path)/BetterFans" --snapshot /tmp/betterfans-ui
 ```
 
 ```

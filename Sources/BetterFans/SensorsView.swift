@@ -1,73 +1,8 @@
 import SwiftUI
-import FanCore
 
-/// Owns its own SMC connection and a serial queue so the ~300 reads never touch the main thread.
-final class SensorsBackend {
-    private let queue = DispatchQueue(label: "betterfans.sensors")
-    private var reader: AllSensorsReader?
-
-    func fetch(_ done: @escaping ([SensorValue]) -> Void) {
-        queue.async {
-            if self.reader == nil, let smc = try? SMC() { self.reader = AllSensorsReader(smc: smc) }
-            let values = self.reader?.read() ?? []
-            DispatchQueue.main.async { done(values) }
-        }
-    }
-}
-
-@MainActor
-final class SensorsModel: ObservableObject {
-    @Published var values: [SensorValue] = []
-    @Published var loaded = false
-    @Published var filter = ""
-    @Published var sortByTemp = true
-
-    private let backend = SensorsBackend()
-    private var timer: Timer?
-
-    /// Polls only while the window is visible.
-    func start() {
-        guard timer == nil else { return }
-        refresh()
-        let t = Timer(timeInterval: 2, repeats: true) { [weak self] _ in Task { @MainActor in self?.refresh() } }
-        t.tolerance = 0.5
-        RunLoop.main.add(t, forMode: .common)
-        timer = t
-    }
-
-    func stop() {
-        timer?.invalidate()
-        timer = nil
-    }
-
-    private func refresh() {
-        backend.fetch { [weak self] v in
-            self?.values = v
-            self?.loaded = true
-        }
-    }
-
-    var groups: [(name: String, items: [SensorValue])] {
-        let q = filter.trimmingCharacters(in: .whitespaces).lowercased()
-        let shown = q.isEmpty ? values : values.filter {
-            $0.key.lowercased().contains(q) || AllSensorsReader.group(for: $0.key).lowercased().contains(q)
-        }
-        let order = ["CPU", "CPU (eficiencia)", "GPU", "Batería"]
-        return Dictionary(grouping: shown) { AllSensorsReader.group(for: $0.key) }
-            .map { name, items in
-                (name, sortByTemp ? items.sorted { $0.celsius > $1.celsius } : items.sorted { $0.key < $1.key })
-            }
-            .sorted { a, b in
-                let ia = order.firstIndex(of: a.name) ?? order.count, ib = order.firstIndex(of: b.name) ?? order.count
-                return ia != ib ? ia < ib : a.name < b.name
-            }
-    }
-}
-
+/// "Sensores" window: every SMC temperature sensor, grouped, filterable and refreshed while open.
 struct SensorsView: View {
     @StateObject private var model = SensorsModel()
-
-    private let columns = [GridItem(.adaptive(minimum: 150), spacing: 14)]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -77,24 +12,27 @@ struct SensorsView: View {
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 16) {
-                        ForEach(model.groups, id: \.name) { group in
-                            section(group.name, group.items)
-                        }
+                        ForEach(model.groups) { SensorGroupSection(group: $0) }
                     }
                     .padding(.bottom, 8)
+                }
+                .overlay {
+                    Text("Ningún sensor coincide con «\(model.filter)».")
+                        .foregroundStyle(.secondary)
+                        .opacity(model.groups.isEmpty ? 1 : 0)
+                        .accessibilityHidden(!model.groups.isEmpty)
                 }
             }
         }
         .padding(16)
         .frame(minWidth: 520, minHeight: 420)
-        .onAppear { model.start() }
-        .onDisappear { model.stop() }
+        .task { await model.run() }
     }
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if let hottest = model.values.max(by: { $0.celsius < $1.celsius }) {
-                Text("\(model.values.count) sensores · más caliente: \(hottest.key) \(format(hottest.celsius))")
+            if let hottest = model.hottest {
+                Text("\(model.values.count) sensores · más caliente: \(hottest.key) \(Theme.celsius(hottest.celsius, decimals: 1))")
                     .font(.headline)
             }
             HStack {
@@ -108,40 +46,12 @@ struct SensorsView: View {
                 .labelsHidden()
                 .frame(width: 230)
             }
-            Text("● = sensor que usa la curva de ventiladores. Las claves sin etiqueta no están documentadas por Apple.")
-                .font(.caption).foregroundStyle(.secondary)
-        }
-    }
-
-    private func section(_ name: String, _ items: [SensorValue]) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(name).font(.subheadline.weight(.semibold))
-                Text("\(items.count) · máx \(format(items.map(\.celsius).max() ?? 0)) · prom \(format(items.map(\.celsius).reduce(0, +) / Double(max(items.count, 1))))")
-                    .font(.caption).foregroundStyle(.secondary).monospacedDigit()
+            Label {
+                Text("Sensor que usa la curva de ventiladores. Las claves sin etiqueta no están documentadas por Apple.")
+            } icon: {
+                Image(systemName: "circle.fill").font(.system(size: 6)).foregroundStyle(Color.accentColor)
             }
-            LazyVGrid(columns: columns, alignment: .leading, spacing: 4) {
-                ForEach(items) { s in
-                    HStack(spacing: 4) {
-                        Text(AllSensorsReader.drivesCurve(s.key) ? "●" : " ")
-                            .font(.caption2).foregroundStyle(Color.accentColor)
-                        Text(s.key).font(.system(.caption, design: .monospaced))
-                        Spacer(minLength: 4)
-                        Text(format(s.celsius)).font(.caption).monospacedDigit().foregroundStyle(color(s.celsius))
-                    }
-                }
-            }
-        }
-    }
-
-    private func format(_ t: Double) -> String { String(format: "%.1f °C", t) }
-
-    private func color(_ t: Double) -> Color {
-        switch t {
-        case ..<60: return .green
-        case ..<80: return .primary
-        case ..<90: return .orange
-        default:    return .red
+            .font(.caption).foregroundStyle(.secondary)
         }
     }
 }
