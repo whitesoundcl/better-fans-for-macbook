@@ -8,6 +8,7 @@ Control de ventiladores para MacBook con Apple Silicon, desde la barra de menús
 - Perfiles incluidos: *Automático (Apple)*, *Frío para piernas*, *Silencioso* y *Máximo*. Puedes crear los tuyos.
 - Editor visual de curva: arrastra puntos, doble clic añade uno, clic derecho lo elimina.
 - Histéresis y rampa de velocidad para evitar zumbidos oscilantes.
+- Ventana *Sensores* con todos los sensores de temperatura del SMC (agrupados, con filtro, en vivo).
 - CLI de depuración (`fanctl`) para leer sensores y probar los ventiladores.
 
 > **Aviso.** Este proyecto escribe en el SMC mediante una interfaz **no documentada** de Apple. Úsalo bajo tu responsabilidad. Se ha probado solo en los equipos de [Equipos probados](#equipos-probados). No está afiliado a ningún otro fabricante de software de control de ventiladores.
@@ -109,10 +110,11 @@ scripts/       build, instalación y desinstalación
 |---|---|---|---|
 | MacBook Pro | M1 Pro | 26 | Funciona |
 | MacBook Pro (`Mac15,6`) | M3 Pro | 15.7 | Funciona: sensores, control manual y curvas |
+| MacBook Pro (`Mac17,9`) | M5 Pro | 27.2 | Funciona: sensores, control manual y curvas (la clave de modo es `F<n>md`, sin `Ftst`) |
 
 ## Otros chips (M2, M4…)
 
-El control de ventiladores es genérico, pero los **nombres de los sensores de temperatura varían según el chip**. La app solo considera hoy las claves `Tp*`, `Te*` y `Tg*` (presentes en M1 y M3). En otros chips puede subestimar la temperatura del CPU. Si pruebas en otro equipo, adjunta la salida de `dist/fanctl dump` en un issue.
+El control de ventiladores es genérico, pero los **nombres de los sensores de temperatura varían según el chip**. La app solo considera hoy las claves `Tp*`, `Te*` y `Tg*` (presentes en M1, M3 y M5; el M5 no tiene `Te*`). En otros chips puede subestimar la temperatura del CPU. Si pruebas en otro equipo, adjunta la salida de `dist/fanctl dump` en un issue.
 
 ## Licencia
 

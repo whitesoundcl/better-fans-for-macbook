@@ -36,6 +36,10 @@ struct MenuView: View {
             }
 
             Divider()
+            Button("Ver todos los sensores…") {
+                NSApp.activate(ignoringOtherApps: true)
+                openWindow(id: "sensors")
+            }
             Button("Editar curva…") {
                 NSApp.activate(ignoringOtherApps: true)
                 openWindow(id: "editor")

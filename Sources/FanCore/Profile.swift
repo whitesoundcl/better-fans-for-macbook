@@ -34,8 +34,8 @@ public extension Profile {
     ])))
 
     static let quiet = Profile(name: "Silencioso", mode: .curve(Curve(points: [
-        .init(temp: 50, percent: 0), .init(temp: 65, percent: 20), .init(temp: 75, percent: 45),
-        .init(temp: 85, percent: 75), .init(temp: 92, percent: 100),
+        .init(temp: 60, percent: 0), .init(temp: 75, percent: 15), .init(temp: 85, percent: 35),
+        .init(temp: 92, percent: 65), .init(temp: 98, percent: 100),
     ])))
 
     static let maximum = Profile(name: "Máximo", mode: .fixed(percent: 100))

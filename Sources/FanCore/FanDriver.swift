@@ -16,14 +16,19 @@ public struct FanDriver {
 
     public var allLimits: [FanLimits] { (0..<fanCount).compactMap { limits(fan: $0) } }
 
-    public func mode(fan: Int) -> Int? { (try? smc.read("F\(fan)Md"))?.number.map(Int.init) }
+    /// Manual/auto mode key: "F<n>Md" on M1–M3, lowercase "F<n>md" on M4/M5.
+    public static func modeKey(_ smc: SMC, fan: Int) -> String {
+        smc.hasKey("F\(fan)Md") ? "F\(fan)Md" : "F\(fan)md"
+    }
+
+    public func mode(fan: Int) -> Int? { (try? smc.read(Self.modeKey(smc, fan: fan)))?.number.map(Int.init) }
 
     /// Switches every fan to manual. Tries the plain write first; if macOS reverts it,
     /// raises the `Ftst` diagnostic flag (when the key exists) and retries for a few seconds.
     public func enableManual() throws {
         for fan in 0..<fanCount {
             if try forceMode(1, fan: fan, attempts: 3) { continue }
-            try? smc.write("Ftst", bytes: [1])
+            if smc.hasKey("Ftst") { try? smc.write("Ftst", bytes: [1]) }  // absent on M5
             guard try forceMode(1, fan: fan, attempts: 50) else {
                 throw SMCError.smcResult(0xFF, key: "F\(fan)Md (manual mode refused)")
             }
@@ -48,13 +53,13 @@ public struct FanDriver {
 
     /// Best-effort: never throws so it is safe in signal handlers and shutdown paths.
     public func restoreAuto() {
-        for fan in 0..<fanCount { try? smc.write("F\(fan)Md", bytes: [0]) }
-        try? smc.write("Ftst", bytes: [0])
+        for fan in 0..<fanCount { try? smc.write(Self.modeKey(smc, fan: fan), bytes: [0]) }
+        if smc.hasKey("Ftst") { try? smc.write("Ftst", bytes: [0]) }
     }
 
     private func forceMode(_ value: UInt8, fan: Int, attempts: Int) throws -> Bool {
         for _ in 0..<attempts {
-            try? smc.write("F\(fan)Md", bytes: [value])
+            try? smc.write(Self.modeKey(smc, fan: fan), bytes: [value])
             if mode(fan: fan) == Int(value) { return true }
             Thread.sleep(forTimeInterval: 0.1)
         }

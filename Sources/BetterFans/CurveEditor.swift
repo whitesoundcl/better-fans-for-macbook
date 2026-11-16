@@ -111,9 +111,13 @@ struct ProfilePreview: View {
     }
 }
 
+/// Local workaround: CommandLineTools on macOS 27 lack the SwiftUIMacros plugin needed by @State.
+final class NameBox: ObservableObject { @Published var value = "" }
+
 struct EditorView: View {
     @EnvironmentObject var model: AppModel
-    @State private var newName = ""
+    @StateObject private var nameBox = NameBox()
+    private var newName: String { get { nameBox.value } nonmutating set { nameBox.value = newValue } }
 
     var body: some View {
         let profile = model.selected
@@ -137,7 +141,7 @@ struct EditorView: View {
                     .frame(width: 480, alignment: .leading)
             }
             HStack {
-                TextField("Guardar como nuevo perfil…", text: $newName)
+                TextField("Guardar como nuevo perfil…", text: $nameBox.value)
                 Button("Duplicar") {
                     guard !newName.isEmpty else { return }
                     var p = profile.isCurve ? profile : Profile.legsCool
