@@ -1,6 +1,6 @@
 import Foundation
 
-public struct FanReading: Codable, Equatable {
+public struct FanReading: Codable, Equatable, Sendable {
     public var index: Int
     public var actualRPM: Double
     public var targetRPM: Double
@@ -8,20 +8,47 @@ public struct FanReading: Codable, Equatable {
     public var maxRPM: Double
     /// SMC mode: 1 = manual (something is overriding macOS), otherwise controlled by macOS.
     public var mode: Int
+
+    public init(index: Int, actualRPM: Double, targetRPM: Double, minRPM: Double, maxRPM: Double, mode: Int) {
+        self.index = index
+        self.actualRPM = actualRPM
+        self.targetRPM = targetRPM
+        self.minRPM = minRPM
+        self.maxRPM = maxRPM
+        self.mode = mode
+    }
 }
 
 /// Discovers die temperature sensors (CPU P/E cores and GPU) once and reports the hottest.
 public final class SensorReader {
     private let smc: SMC
     public private(set) var keys: [String]
+    /// Air-temperature sensor shown as "ambiente" (nil if the Mac has none). Display only:
+    /// it sits inside the chassis, so it reads above room temperature and never feeds the curve.
+    public let ambientKey: String?
 
     public init(smc: SMC) {
         self.smc = smc
+        let all = (try? smc.allKeys()) ?? []
         let prefixes = ["Tp", "Te", "Tg"]
-        keys = ((try? smc.allKeys()) ?? []).filter { key in
+        keys = all.filter { key in
             guard prefixes.contains(where: key.hasPrefix), let v = try? smc.read(key), v.type == "flt " else { return false }
             return Self.plausible(v.number)
         }
+        // Only `TA*` keys are read here; the rest of the ~3600 keys are skipped by the prefix check.
+        ambientKey = Self.ambientKey(from: all.filter { $0.hasPrefix("TA") && Self.plausible((try? smc.read($0))?.number) })
+    }
+
+    /// `TAOL` when present (M5 Pro), otherwise the first `TA*` key in name order; nil if none.
+    public static func ambientKey(from keys: [String]) -> String? {
+        let candidates = keys.filter { $0.hasPrefix("TA") }.sorted()
+        return candidates.contains("TAOL") ? "TAOL" : candidates.first
+    }
+
+    /// Current air temperature from `ambientKey`, nil when absent or implausible.
+    public func ambient() -> Double? {
+        guard let ambientKey, let t = (try? smc.read(ambientKey))?.number, Self.plausible(t) else { return nil }
+        return t
     }
 
     private static func plausible(_ t: Double?) -> Bool {
@@ -39,6 +66,15 @@ public final class SensorReader {
     /// nil when no sensor could be read.
     public func hottest() -> Double? { readings().map(\.celsius).max() }
 
+    /// Hottest CPU (`Tp*`/`Te*`) and GPU (`Tg*`) sensor, from a single pass over the keys.
+    public func hottestCPUAndGPU() -> (cpu: Double?, gpu: Double?) {
+        var cpu: Double?, gpu: Double?
+        for r in readings() {
+            if r.key.hasPrefix("Tg") { gpu = max(gpu ?? r.celsius, r.celsius) } else { cpu = max(cpu ?? r.celsius, r.celsius) }
+        }
+        return (cpu, gpu)
+    }
+
     private lazy var fanCount = Int((try? smc.read("FNum"))?.number ?? 0)
     private var fanRanges: [Int: (min: Double, max: Double)] = [:]
 
@@ -54,7 +90,7 @@ public final class SensorReader {
 }
 
 /// One temperature reading for display.
-public struct SensorValue: Identifiable, Equatable {
+public struct SensorValue: Identifiable, Equatable, Sendable {
     public let key: String
     public let celsius: Double
     public var id: String { key }
@@ -90,6 +126,7 @@ public final class AllSensorsReader {
         case "Te": return "CPU (eficiencia)"
         case "Tg": return "GPU"
         case "TB": return "Batería"
+        case "TA": return "Ambiente"
         default:   return "Otros · \(key.prefix(2))*"
         }
     }
